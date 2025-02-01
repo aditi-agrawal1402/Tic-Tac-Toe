@@ -3,9 +3,9 @@ function Gameboard() {
     const columns = 3;
     const board = [];
 
-    for(let i = 0; i < rows; i++){
+    for (let i = 0; i < rows; i++) {
         board[i] = [];
-        for(let j = 0; j < columns; j++){
+        for (let j = 0; j < columns; j++) {
             board[i].push(Cell());
         }
     }
@@ -79,13 +79,69 @@ function GameController(
         console.log(`Marking ${getActivePlayer().name}'s token on row ${row} column ${column}`);
         board.markCell(row, column, getActivePlayer().token);
 
-
+        let boardArray = board.getBoard();
         //game logic
 
+        let sign = getActivePlayer().token;
+
+        let flag = true;
+        //horizontal
+        for (let i = 0; i < 3; i++) {
+            let mark = boardArray[row][i].getValue();
+            if (mark != sign) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag) return true;
+
+        flag = true;
+
+        //vertical
+        for (let i = 0; i < 3; i++) {
+            let mark = boardArray[i][column].getValue();
+            if (mark != sign) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag) return true;
+
+        flag = true;
+
+        //main diagonal
+        if (row == column) {
+            for (let i = 0; i < 3; i++) {
+                let mark = boardArray[i][i].getValue();
+                if (mark != sign) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) return true;
+
+            flag = true;
+        }
+
+        console.log(`${row}  ${column}`);
+
+        //secondary diagonal
+        for (let i = 0; i < 3; i++) {
+            let mark = boardArray[i][2 - i].getValue();
+            if (mark != sign) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag) { console.log("fweifn"); return true };
 
         switchPlayerTurn();
         printNewRound();
+
+        return false;
     }
+
+
 
     printNewRound();
 
@@ -100,7 +156,7 @@ function ScreenController() {
     const game = GameController();
     const playerTurnDiv = document.querySelector('.turn');
     const boardDiv = document.querySelector('.board');
-    
+
     const updateScreen = () => {
         boardDiv.textContent = "";
 
@@ -125,13 +181,21 @@ function ScreenController() {
     function clickHandlerBoard(e) {
         const selectedRow = e.target.dataset.rowNo;
         const selectedColumn = e.target.dataset.columnNo;
-        
-        if(!selectedColumn) return;
-        if(!selectedRow) return;
-        console.log(`${selectedRow}, ${selectedColumn}`)
-        game.playRound(selectedRow, selectedColumn);
-        console.log("ebreyubrg");
+        const board = game.getBoard();
+
+        if (!selectedColumn) return;
+        if (!selectedRow) return;
+
+        if (board[selectedRow][selectedColumn].getValue() != 0) return;
+
+        let win = game.playRound(selectedRow, selectedColumn);
         updateScreen();
+        if (win) gameWin();
+    }
+
+    function gameWin() {
+        let winner = game.getActivePlayer().name;
+        playerTurnDiv.textContent = `${winner} won the game`;
     }
 
     boardDiv.addEventListener("click", clickHandlerBoard);
